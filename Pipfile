@@ -9,6 +9,7 @@ fastapi = "*"
 uvicorn = "*"
 fastapi-redis-session = "*"
 python-dotenv = "*"
+apscheduler = "*"
 
 [dev-packages]
 
