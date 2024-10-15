@@ -32,7 +32,7 @@ class RecommentAlgorithim:
             self.redis.hincrby(video_key, "like_count", 1)
         elif liked == -1:
             self.redis.hset(reaction_key, "liked", 0)
-            self.redis.hset(video_key, "like_count", -1)
+            # self.redis.hset(video_key, "like_count", -1)
     
     # 추후 구현이 필요한 메소드들
     def runAlgorithm(self, user_id, video_id):
@@ -45,16 +45,20 @@ class RecommentAlgorithim:
         score = self.runAlgorithm(user_id, video_id)
         score_key = f"scores:{user_id}"
         self.redis.zadd(score_key, {video_id: score})
-    
+        self.redis.hset(f"user_meta:{user_id}", "last_updated_at", datetime.now().isoformat())
+        
+    # 계산된 추천 데이터를 받아온다.
     def get_recommendations(self, user_id, count=10):
         score_key = f"scores:{user_id}"
         recommendation_list = self.redis.zrevrange(score_key, 0, count - 1) # 내림차순 정렬 반환
+        last_updated_at = self.redis.hget(f"user_meta:{user_id}", "last_updated_at")
         
         result = {
             "user_id" : user_id, 
             "recommend_videos" : [
                 rec.decode() for rec in recommendation_list
-            ]
+            ],
+            "last_updated_at" : last_updated_at
         }
         
         return json.dumps(result)
