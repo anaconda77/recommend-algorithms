@@ -27,7 +27,7 @@ class RecommendationScheduler:
             if time_difference >= timedelta(minutes=10):
                 self.recommender.run_algorithm(
                     event['user_id'], 
-                    event['video_id']
+                    event['category_id']
                 )
             else:
                 self.recommender.event_queue.add_event(event)

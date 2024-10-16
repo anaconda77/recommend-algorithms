@@ -9,8 +9,8 @@ class VideoRecommender:
         self.redis = redis_client
         self.event_queue = EventQueue(self.redis)
     
-    def add_videoInfo(self, video_id, created_at):
-        video_key = f"video:{video_id}"
+    def add_videoInfo(self, category_id, video_id, created_at):
+        video_key = f"video_{category_id}:{video_id}"
         self.redis.hset(video_key, mapping={
             "created_at" : created_at.isoformat(),
             "view_count" : 0,
@@ -18,9 +18,9 @@ class VideoRecommender:
         })
     
     # 유저의 행위로 이벤트 발생, 스케줄러에 추천 영상 리스트 계산 작업 요청 추가
-    def get_new_event(self, user_id, video_id, watched=False, liked=False):
+    def get_new_event(self, user_id, category_id, video_id, watched=False, liked=False):
         reaction_key = f"reaction:{user_id}:{video_id}"
-        video_key = f"video:{video_id}"
+        video_key = f"video_{category_id}:{video_id}"
         
         if watched:
             self.redis.hset(reaction_key, "watched", 1)
@@ -34,13 +34,14 @@ class VideoRecommender:
         
         new_event = {
             "user_id" : user_id,
+            "category_id" : category_id,
             "last_updated_at" : self.redis.hget(f"user_meta:{user_id}", "last_updated_at")
         }
         
         self.event_queue.add_event(new_event)
     
     # 실제 계산이 수행되는 알고리즘
-    def run_algorithm(self, user_id, video_id):
+    def run_algorithm(self, user_id, category_id):
         return True
 
     def update_scores(self, user_id, video_id):
