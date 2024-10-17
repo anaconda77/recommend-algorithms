@@ -1,2 +1,2 @@
 ## 스키마 구조
-<img width="900" alt="스크린샷 2024-10-15 오후 5 51 00" src="https://github.com/user-attachments/assets/0c9094b8-584c-4bd2-baac-cf0d1e92c837">
+<img width="879" alt="스크린샷 2024-10-17 오전 11 22 08" src="https://github.com/user-attachments/assets/224a6ec2-4d24-49eb-9085-5334613f7977">
