@@ -1,6 +1,8 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime, timedelta
+from fastapi.logger import logger
+import logging
 
 class RecommendationScheduler:
     def __init__(self, recommender, event_queue):
@@ -12,7 +14,7 @@ class RecommendationScheduler:
     def setup_scheduler(self):
         self.scheduler.add_job(
             func=self.process_events,
-            trigger=IntervalTrigger(hours=24),  # 매일 실행
+            trigger=IntervalTrigger(seconds=5),  # 매일 실행
             id='daily_recommendation_update',
             name='Update all user recommendations daily',
             replace_existing=True)
@@ -21,16 +23,23 @@ class RecommendationScheduler:
     def process_events(self):
         events = self.recommender.event_queue.get_events()
         for event in events:
-            event_time = datetime.fromisoformat(event['last_updated_at'])
-            time_difference = datetime.now() - event_time
-            
-            if time_difference >= timedelta(minutes=10):
-                self.recommender.run_algorithm(
+            event_time = event['last_updated_at']
+            if event_time is None:
+                  self.recommender.run_algorithm(
                     event['user_id'], 
                     event['category_id']
                 )
             else:
-                self.recommender.event_queue.add_event(event)
+                logger.debug(event_time)
+                time_difference = datetime.now() - datetime.fromisoformat(event_time)
+                
+                if time_difference >= timedelta(seconds=10):
+                    self.recommender.run_algorithm(
+                        event['user_id'], 
+                        event['category_id']
+                    )
+                else:
+                    self.recommender.event_queue.add_event(event)
         
     def close(self):
         self.scheduler.shutdown()

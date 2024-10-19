@@ -2,6 +2,8 @@ import redis
 import json
 from datetime import datetime
 from eventQueue import EventQueue
+from fastapi.logger import logger
+import logging
 
 class VideoRecommender:
     
@@ -17,6 +19,15 @@ class VideoRecommender:
             "like_count" : 0
         })
     
+    def add_queue(self, user_id, category_id):
+        last_updated_at = self.redis.hget(f"user_meta:{user_id}", "last_updated_at")
+        new_event = {
+            "user_id" : user_id,
+            "category_id" : category_id,
+            "last_updated_at" : last_updated_at.decode() if last_updated_at else None
+        }
+        self.event_queue.add_event(new_event)
+        
     # 유저의 행위로 이벤트 발생, 스케줄러에 추천 영상 리스트 계산 작업 요청 추가
     def get_new_event(self, user_id, category_id, video_id, watched=False, liked=False):
         reaction_key = f"reaction:{user_id}:{video_id}"
@@ -31,15 +42,7 @@ class VideoRecommender:
         elif liked == -1:
             self.redis.hset(reaction_key, "liked", 0)
             # self.redis.hset(video_key, "like_count", -1)
-        
-        new_event = {
-            "user_id" : user_id,
-            "category_id" : category_id,
-            "last_updated_at" : self.redis.hget(f"user_meta:{user_id}", "last_updated_at")
-        }
-        
-        self.event_queue.add_event(new_event)
-    
+  
     # 실제 계산이 수행되는 알고리즘
     def run_algorithm(self, user_id, category_id):
         # 해당 카테고리의 모든 영상을 가져옴
@@ -78,7 +81,7 @@ class VideoRecommender:
 
             # 점수를 Redis에 저장
             score_key = f"scores:{user_id}"
-            self.redis.zadd(score_key, {f"{category_id}:{video_id}": total_score})
+            self.redis.zadd(score_key, {f"category_{category_id}:{video_id}": total_score})
 
         # 카테고리에 해당되는 영상들 모두 점수 부여 후 마지막 업데이트 시간 갱신
         self.redis.hset(f"user_meta:{user_id}", "last_updated_at", datetime.now().isoformat())
@@ -88,16 +91,15 @@ class VideoRecommender:
         score_key = f"scores:{user_id}"
         recommendation_list = self.redis.zrevrange(score_key, 0, count - 1) # 내림차순 정렬 반환
         last_updated_at = self.redis.hget(f"user_meta:{user_id}", "last_updated_at")
-        
+
         result = {
             "user_id" : user_id, 
             "recommend_videos" : [
                 rec.decode() for rec in recommendation_list
             ],
-            "last_updated_at" : last_updated_at
+            "last_updated_at" : last_updated_at.decode() if last_updated_at else None
         }
-        
-        return json.dumps(result)
+        return json.dumps(result, ensure_ascii=False)
     
     def close(self):
         self.redis.close()
