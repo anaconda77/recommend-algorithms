@@ -14,7 +14,7 @@ class RecommendationScheduler:
     def setup_scheduler(self):
         self.scheduler.add_job(
             func=self.process_events,
-            trigger=IntervalTrigger(minutes=60),  # 한 시간마다 실행
+            trigger=IntervalTrigger(minutes=5),  # 5분마다 실행
             id='daily_recommendation_update',
             name='Update all user recommendations daily',
             replace_existing=True)
@@ -38,6 +38,7 @@ class RecommendationScheduler:
                         event['user_id'], 
                         event['category_id']
                     )
+                    logger.debug(f"runned alogorithm, user_id:{event['user_id']}")
                 else:
                     self.recommender.event_queue.add_event(event)
         

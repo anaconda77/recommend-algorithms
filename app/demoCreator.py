@@ -26,9 +26,6 @@ class DemoCreator:
                     recommender.get_new_event(1,1,i,True,False)
                 else:
                     recommender.get_new_event(1,1,i,True,True)
-        
-        recommender.add_queue(1,1)
-    
     
     
     def close(self):

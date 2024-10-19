@@ -43,9 +43,7 @@ async def startup_event():
         demoCreator = DemoCreator(redis_client)
         demoCreator.make_demo_videos(recommender)
         demoCreator.make_events(recommender)
-        recommender.run_algorithm(1,1)
-        result = recommender.get_recommendations(1,5)
-        logger.debug(result)
+        
     except Exception as e:
         logger.error(f"Error during startup: {e}")
         raise
