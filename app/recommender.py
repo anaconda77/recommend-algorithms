@@ -57,9 +57,9 @@ class VideoRecommender:
             upload_date = self.redis.hget(video_key, "created_at")
 
             # 사용자와 영상에 대한 반응 정보 불러오기
-            interaction_key = f"interaction:{user_id}:{video_id}"
-            watched = int(self.redis.hget(interaction_key, "watched") or 0)
-            liked = int(self.redis.hget(interaction_key, "liked") or 0)
+            reaction_key = f"reaction:{user_id}:{video_id}"
+            watched = int(self.redis.hget(reaction_key, "watched") or 0)
+            liked = int(self.redis.hget(reaction_key, "liked") or 0)
 
             # 가중치 설정
             view_weight = 0.004  # 조회수 가중치
