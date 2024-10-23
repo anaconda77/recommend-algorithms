@@ -19,18 +19,18 @@ class VideoRecommender:
             "like_count" : 0
         })
     
-    def add_queue(self, user_id, category_id):
-        last_updated_at = self.redis.hget(f"user_meta:{user_id}", "last_updated_at")
+    def add_queue(self, member_id, category_id):
+        last_updated_at = self.redis.hget(f"user_meta:{member_id}", "last_updated_at")
         new_event = {
-            "user_id" : user_id,
+            "member_id" : member_id,
             "category_id" : category_id,
             "last_updated_at" : last_updated_at.decode() if last_updated_at else None
         }
         self.event_queue.add_event(new_event)
         
     # 유저의 행위로 이벤트 발생, 스케줄러에 추천 영상 리스트 계산 작업 요청 추가
-    def get_new_event(self, user_id, category_id, video_id, watched=False, liked=False):
-        reaction_key = f"reaction:{user_id}:{video_id}"
+    def get_new_event(self, member_id, category_id, video_id, watched=False, liked=False):
+        reaction_key = f"reaction:{member_id}:{video_id}"
         video_key = f"video_{category_id}:{video_id}"
         
         if watched:
@@ -44,7 +44,7 @@ class VideoRecommender:
             # self.redis.hset(video_key, "like_count", -1)
   
     # 실제 계산이 수행되는 알고리즘
-    def run_algorithm(self, user_id, category_id):
+    def run_algorithm(self, member_id, category_id):
         # 해당 카테고리의 모든 영상을 가져옴
         video_keys = self.redis.keys(f"video_{category_id}:*")
 
@@ -57,7 +57,7 @@ class VideoRecommender:
             upload_date = self.redis.hget(video_key, "created_at")
 
             # 사용자와 영상에 대한 반응 정보 불러오기
-            reaction_key = f"reaction:{user_id}:{video_id}"
+            reaction_key = f"reaction:{member_id}:{video_id}"
             watched = int(self.redis.hget(reaction_key, "watched") or 0)
             liked = int(self.redis.hget(reaction_key, "liked") or 0)
 
@@ -80,20 +80,20 @@ class VideoRecommender:
             total_score = popularity_score + user_score + recency_score
 
             # 점수를 Redis에 저장
-            score_key = f"scores:{user_id}"
+            score_key = f"scores:{member_id}"
             self.redis.zadd(score_key, {f"category_{category_id}:{video_id}": total_score})
 
         # 카테고리에 해당되는 영상들 모두 점수 부여 후 마지막 업데이트 시간 갱신
-        self.redis.hset(f"user_meta:{user_id}", "last_updated_at", datetime.now().isoformat())
+        self.redis.hset(f"user_meta:{member_id}", "last_updated_at", datetime.now().isoformat())
 
     # 계산된 추천 데이터를 받아온다.
-    def get_recommendations(self, user_id, count=10):
-        score_key = f"scores:{user_id}"
+    def get_recommendations(self, member_id, count=10):
+        score_key = f"scores:{member_id}"
         recommendation_list = self.redis.zrevrange(score_key, 0, count - 1) # 내림차순 정렬 반환
-        last_updated_at = self.redis.hget(f"user_meta:{user_id}", "last_updated_at")
+        last_updated_at = self.redis.hget(f"user_meta:{member_id}", "last_updated_at")
 
         result = {
-            "user_id" : user_id, 
+            "member_id" : member_id, 
             "recommend_videos" : [
                 rec.decode() for rec in recommendation_list
             ],

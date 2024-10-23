@@ -26,7 +26,7 @@ class RecommendationScheduler:
             event_time = event['last_updated_at']
             if event_time is None:
                   self.recommender.run_algorithm(
-                    event['user_id'], 
+                    event['member_id'], 
                     event['category_id']
                 )
             else:
@@ -35,10 +35,10 @@ class RecommendationScheduler:
                 
                 if time_difference >= timedelta(minutes=10):
                     self.recommender.run_algorithm(
-                        event['user_id'], 
+                        event['member_id'], 
                         event['category_id']
                     )
-                    logger.debug(f"runned alogorithm, user_id:{event['user_id']}")
+                    logger.debug(f"runned alogorithm, member_id:{event['member_id']}")
                 else:
                     self.recommender.event_queue.add_event(event)
         
