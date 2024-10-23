@@ -80,15 +80,15 @@ class VideoRecommender:
             total_score = popularity_score + user_score + recency_score
 
             # 점수를 Redis에 저장
-            score_key = f"scores:{member_id}"
-            self.redis.zadd(score_key, {f"category_{category_id}:{video_id}": total_score})
+            score_key = f"scores:{category_id}:{member_id}"
+            self.redis.zadd(score_key, {video_id: total_score})
 
         # 카테고리에 해당되는 영상들 모두 점수 부여 후 마지막 업데이트 시간 갱신
         self.redis.hset(f"user_meta:{member_id}", "last_updated_at", datetime.now().isoformat())
 
     # 계산된 추천 데이터를 받아온다.
-    def get_recommendations(self, member_id, count=10):
-        score_key = f"scores:{member_id}"
+    def get_recommendations(self, category_id, member_id, count=10):
+        score_key = f"scores:{category_id}:{member_id}"
         recommendation_list = self.redis.zrevrange(score_key, 0, count - 1) # 내림차순 정렬 반환
         last_updated_at = self.redis.hget(f"user_meta:{member_id}", "last_updated_at")
 

@@ -14,7 +14,7 @@ class RecommendationScheduler:
     def setup_scheduler(self):
         self.scheduler.add_job(
             func=self.process_events,
-            trigger=IntervalTrigger(minutes=5),  # 5분마다 실행
+            trigger=IntervalTrigger(seconds=5),  # 5분마다 실행
             id='daily_recommendation_update',
             name='Update all user recommendations daily',
             replace_existing=True)
@@ -33,7 +33,7 @@ class RecommendationScheduler:
                 logger.debug(event_time)
                 time_difference = datetime.now() - datetime.fromisoformat(event_time)
                 
-                if time_difference >= timedelta(minutes=10):
+                if time_difference >= timedelta(seconds=10):
                     self.recommender.run_algorithm(
                         event['member_id'], 
                         event['category_id']
