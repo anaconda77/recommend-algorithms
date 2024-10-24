@@ -1,7 +1,7 @@
 import redis
 import json
 from datetime import datetime
-from eventQueue import EventQueue
+from app.eventQueue import EventQueue
 from fastapi.logger import logger
 import logging
 

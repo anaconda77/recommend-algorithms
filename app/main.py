@@ -2,14 +2,14 @@ import redis
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from scheduler import RecommendationScheduler
-from eventQueue import EventQueue
-from recommender import VideoRecommender
+from app.scheduler import RecommendationScheduler
+from app.eventQueue import EventQueue
+from app.recommender import VideoRecommender
 from datetime import datetime
 from fastapi.logger import logger
 import logging
 import uvicorn
-from demoCreator import DemoCreator
+from app.demoCreator import DemoCreator
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
