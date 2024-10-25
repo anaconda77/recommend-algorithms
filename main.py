@@ -40,9 +40,9 @@ async def startup_event():
         scheduler = RecommendationScheduler(recommender, event_queue)
         logger.info("Application started successfully")
         
-        demoCreator = DemoCreator(redis_client)
-        demoCreator.make_demo_videos(recommender)
-        demoCreator.make_events(recommender)
+        # demoCreator = DemoCreator(redis_client)
+        # demoCreator.make_demo_videos(recommender)
+        # demoCreator.make_events(recommender)
         
     except Exception as e:
         logger.error(f"Error during startup: {e}")
@@ -59,11 +59,13 @@ async def shutdown_event():
         redis_client.close()
     logger.info("Application shut down complete")
 
-@app.get("/")
-async def root():
-    recommender.add_queue(1,1)
-    return {"message": "Recommender system is running"}
+@app.get("/test/algo/{member_id}/{category_id}")
+async def user_algo(member_id: int, category_id: int):
+    recommender.add_queue(member_id,category_id)
 
+@app.get("/test/algo/default/{category_id}")
+async def default_algo(category_id: int):
+    recommender.run_default_algorithm(category_id)    
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
