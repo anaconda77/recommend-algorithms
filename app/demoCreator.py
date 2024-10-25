@@ -15,12 +15,13 @@ class DemoCreator:
         self.event_queue = EventQueue(self.redis)
     
     def make_demo_videos(self, recommender):
-        for i in range(10):
-            recommender.add_videoInfo(1, i, datetime.now())
-            logger.debug(f"Added video info: category 1, id {i}")
+        for i in range(1,6):
+            for j in range(1,11):
+                recommender.add_videoInfo(i, j, datetime.now())
+                logger.debug(f"Added video info: category {i}, id {j}")
     
     def make_events(self, recommender):
-        for i in range(10):
+        for i in range(1,11):
             for j in range(100):
                 if i % 2 == 0:
                     recommender.get_new_event(1,1,i,True,False)

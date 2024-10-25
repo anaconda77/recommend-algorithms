@@ -12,15 +12,34 @@ class RecommendationScheduler:
         self.setup_scheduler()
 
     def setup_scheduler(self):
+        # 유저 추천 알고리즘
         self.scheduler.add_job(
-            func=self.process_events,
+            func=self.process_user_algorithms_events,
             trigger=IntervalTrigger(seconds=5),  # 5분마다 실행
-            id='daily_recommendation_update',
+            id='user_recommendation_update',
             name='Update all user recommendations daily',
-            replace_existing=True)
+            replace_existing=True
+        )
+        
+        # 기본 추천 알고리즘
+        self.scheduler.add_job(
+            func=self.process_user_algorithms_events,
+            trigger=IntervalTrigger(seconds=10),  # 12시간마다 실행
+            id='default_recommendation_update',
+            name='Update all default recommendations daily',
+            replace_existing=True
+            )
+        
         self.scheduler.start()
 
-    def process_events(self):
+    def process_default_algorithms_events(self):
+        category_ids = [i for i in range(1,6)]
+        
+        for category_id in category_ids:
+            self.recommender.run_default_algorithm(category_id)
+        logger.debug("runned default algorithm")
+        
+    def process_user_algorithms_events(self):
         events = self.recommender.event_queue.get_events()
         for event in events:
             event_time = event['last_updated_at']
@@ -43,4 +62,9 @@ class RecommendationScheduler:
                     self.recommender.event_queue.add_event(event)
         
     def close(self):
-        self.scheduler.shutdown()
+        try:
+            self.scheduler.shutdown()
+            logger.info("Scheduler shutdown successfully")
+        except Exception as e:
+            logger.error(f"Error during scheduler shutdown: {e}")
+
