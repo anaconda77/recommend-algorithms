@@ -64,7 +64,7 @@ class VideoRecommender:
 
             # 최신성 계산
             now = datetime.now()
-            video_date = datetime.fromisoformat(upload_date.decode())
+            video_date = datetime.fromisoformat(upload_date.decode().strip('"'))
             days_diff = (now - video_date).days
 
             # 점수 계산
@@ -104,7 +104,7 @@ class VideoRecommender:
 
             # 최신성 계산
             now = datetime.now()
-            video_date = datetime.fromisoformat(upload_date.decode())
+            video_date = datetime.fromisoformat(upload_date.decode().strip('"'))
             days_diff = (now - video_date).days
 
             # 점수 계산
@@ -142,7 +142,8 @@ class VideoRecommender:
             "recommend_videos" : [
                 rec.decode() for rec in recommendation_list
             ],
-            "last_updated_at" : last_updated_at.decode() if last_updated_at else None
+            "last_updated_at" : last_updated_at.decode()
+            if last_updated_at else None
         }
         return json.dumps(result, ensure_ascii=False)
     

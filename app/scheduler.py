@@ -23,7 +23,7 @@ class RecommendationScheduler:
         
         # 기본 추천 알고리즘
         self.scheduler.add_job(
-            func=self.process_user_algorithms_events,
+            func=self.process_default_algorithms_events,
             trigger=IntervalTrigger(seconds=10),  # 12시간마다 실행
             id='default_recommendation_update',
             name='Update all default recommendations daily',
@@ -34,7 +34,7 @@ class RecommendationScheduler:
 
     def process_default_algorithms_events(self):
         category_ids = [i for i in range(1,6)]
-        
+
         for category_id in category_ids:
             self.recommender.run_default_algorithm(category_id)
         logger.debug("runned default algorithm")
