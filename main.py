@@ -31,9 +31,11 @@ async def startup_event():
     
     try:
         redis_client = redis.Redis(
-            host=os.getenv("REDIS_HOST", "localhost"),
+            host=os.getenv("REDIS_HOST", "redis"),
             port=int(os.getenv("REDIS_PORT", 6379)),
-            db=int(os.getenv("REDIS_DATABASE", 0))
+            db=int(os.getenv("REDIS_DATABASE", 0)),
+            socket_connect_timeout=5,  # 연결 타임아웃 설정
+            retry_on_timeout=True 
         )
         recommender = VideoRecommender(redis_client)
         event_queue = EventQueue(redis_client)
@@ -58,14 +60,6 @@ async def shutdown_event():
     if redis_client:
         redis_client.close()
     logger.info("Application shut down complete")
-
-@app.get("/test/algo/{member_id}/{category_id}")
-async def user_algo(member_id: int, category_id: int):
-    recommender.add_queue(member_id,category_id)
-
-@app.get("/test/algo/default/{category_id}")
-async def default_algo(category_id: int):
-    recommender.run_default_algorithm(category_id)    
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
