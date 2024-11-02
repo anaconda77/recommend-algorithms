@@ -15,7 +15,7 @@ class RecommendationScheduler:
         # 유저 추천 알고리즘
         self.scheduler.add_job(
             func=self.process_user_algorithms_events,
-            trigger=IntervalTrigger(seconds=5),  # 5분마다 실행
+            trigger=IntervalTrigger(minutes=5),  # 5분마다 실행
             id='user_recommendation_update',
             name='Update all user recommendations daily',
             replace_existing=True
@@ -24,7 +24,7 @@ class RecommendationScheduler:
         # 기본 추천 알고리즘
         self.scheduler.add_job(
             func=self.process_default_algorithms_events,
-            trigger=IntervalTrigger(seconds=10),  # 12시간마다 실행
+            trigger=IntervalTrigger(hours=12),  # 12시간마다 실행
             id='default_recommendation_update',
             name='Update all default recommendations daily',
             replace_existing=True
@@ -52,7 +52,7 @@ class RecommendationScheduler:
                 logger.debug(event_time)
                 time_difference = datetime.now() - datetime.fromisoformat(event_time)
                 
-                if time_difference >= timedelta(seconds=10):
+                if time_difference >= timedelta(minutes=10):
                     self.recommender.run_algorithm(
                         event['member_id'], 
                         event['category_id']
